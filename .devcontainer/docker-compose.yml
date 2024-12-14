@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  vecchio:
+    stdin_open: true
+    tty: true
+    build:
+      context: ..
+      target: build
+      dockerfile: Dockerfile
+      args:
+        MIX_ENV: dev
+    container_name: vecchio
+    command: sleep infinity
+    restart: unless-stopped
+    user: "${UID}:${GID}"
+    ports:
+      - "4444:4444"
+    volumes:
+      - .:/app
+      - ..:/workspaces:cached
+    env_file:
+      - ../.env
+    depends_on:
+      - mongodb
+    networks:
+      - admin
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - admin
+
+  mongo-express:
+    image: mongo-express:1.0.0-alpha.4
+    container_name: mongo_express_container
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_SERVER: mongodb
+    networks:
+      - admin
+
+
+
+networks:
+  admin:
+    name: admin
+    driver: bridge
+
+volumes:
+  mongo_data:
+
+
