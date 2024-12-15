@@ -14,7 +14,7 @@ defmodule VecchioApi.Application do
       # Start the Finch HTTP client for sending emails
       {Finch, name: VecchioApi.Finch},
       # Start a worker by calling: VecchioApi.Worker.start_link(arg)
-      # {VecchioApi.Worker, arg},
+      VecchioApi.Repo,
       # Start to serve requests, typically the last entry
       VecchioApiWeb.Endpoint
     ]
