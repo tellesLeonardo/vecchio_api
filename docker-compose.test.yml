@@ -19,11 +19,6 @@ services:
       - mongodb
     networks:
       - admin
-    logging:
-      driver: json-file
-      options:
-      max-size: "50m"
-        max-file: "10"
 
   mongodb:
     image: mongo:6.0
