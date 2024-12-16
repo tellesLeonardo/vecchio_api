@@ -3,26 +3,13 @@ defmodule VecchioApiWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug VecchioApiWeb.Plugs.CORS
+    plug VecchioApiWeb.Plugs.RequestLogger
   end
 
-  scope "/api", VecchioApiWeb do
+  scope "/", VecchioApiWeb do
     pipe_through :api
-  end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
-  if Application.compile_env(:vecchio_api, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
-    import Phoenix.LiveDashboard.Router
-
-    scope "/dev" do
-      pipe_through [:fetch_session, :protect_from_forgery]
-
-      live_dashboard "/dashboard", metrics: VecchioApiWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
+    post "/", Command, :command
   end
 end

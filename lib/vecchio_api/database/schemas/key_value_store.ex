@@ -2,7 +2,7 @@ defmodule VecchioApi.Schemas.KeyValueStore do
   use Mongo.Collection
   alias __MODULE__
 
-  collection ("key_value_store") do
+  collection "key_value_store" do
     attribute(:id, :string, derived: true)
     attribute(:key, :string)
     attribute(:value, :string)
@@ -11,7 +11,6 @@ defmodule VecchioApi.Schemas.KeyValueStore do
 
     after_load(&KeyValueStore.after_load/1)
     before_dump(&KeyValueStore.before_dump/1)
-
   end
 
   def after_load(%__MODULE__{_id: id} = data) do
