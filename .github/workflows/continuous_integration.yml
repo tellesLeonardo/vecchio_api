@@ -45,7 +45,7 @@ jobs:
 
       - name: Save logs on failure
         if: failure()
-        run: docker logs vecchio_test
+        run: docker-compose -f docker-compose.test.yml logs > logs.txt
         
       # Limpeza de containers
       - name: Cleanup

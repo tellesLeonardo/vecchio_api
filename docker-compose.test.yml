@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-   vecchio_test:
+  vecchio_test:
     build:
       context: ..
       target: build
@@ -22,7 +22,7 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "50m"
+      max-size: "50m"
         max-file: "10"
 
   mongodb:
