@@ -5,12 +5,12 @@ services:
     build:
       context: ..
       target: build
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.test
     environment:
       MIX_ENV: test
     container_name: vecchio_test
     command: >
-      sh -c "mix deps.get && mix test --trace"     restart: unless-stopped
+      sh -c "mix deps.get && mix test --trace"
     volumes:
       - .:/app
     env_file:
@@ -24,10 +24,10 @@ services:
       options:
         max-size: "50m"
         max-file: "10"
-        
+
   mongodb:
     image: mongo:6.0
-    container_name: mongodb_container
+    container_name: mongodb_test_container
     ports:
       - "27017:27017"
     environment:
