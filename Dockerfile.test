@@ -1,0 +1,16 @@
+# Etapa para instalar dependências
+FROM elixir:1.16 AS build
+WORKDIR /app
+
+# Copiar apenas arquivos necessários para as dependências
+COPY mix.exs mix.lock ./
+
+# Instalar as dependências
+RUN mix local.hex --force && mix local.rebar --force
+RUN mix deps.get && mix deps.compile
+
+# Copiar o restante do código
+COPY . .
+
+# Compilar o projeto
+RUN mix compile

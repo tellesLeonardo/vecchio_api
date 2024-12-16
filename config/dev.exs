@@ -9,7 +9,7 @@ import Config
 config :vecchio_api, VecchioApiWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: System.get_env("PORT")],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -38,6 +38,18 @@ config :vecchio_api, VecchioApiWeb.Endpoint,
 # If desired, both `http:` and `https:` keys can be
 # configured to run both http and https servers on
 # different ports.
+
+config :vecchio_api, VecchioApi.Repo,
+  database: System.get_env("DATABASE_NAME"),
+  url: System.get_env("DATABASE_URL"),
+  pool_size: 10,
+  timeout: 60_000,
+  idle_interval: 10_000,
+  queue_target: 5_000,
+  username: System.get_env("DATABASE_USERNAME"),
+  password: System.get_env("DATABASE_PASSWORD"),
+  auth_source: "admin"
+
 
 # Enable dev routes for dashboard and mailbox
 config :vecchio_api, dev_routes: true

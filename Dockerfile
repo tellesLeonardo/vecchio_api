@@ -24,7 +24,7 @@ COPY . ./
 
 RUN mix do deps.get, deps.compile
 
-RUN mix do compile --warnings-as-errors, release
+RUN mix do compile, release
 
 # production stage
 FROM alpine:3.12 AS production

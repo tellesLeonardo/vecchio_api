@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  vecchio_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      MIX_ENV: test
+    container_name: vecchio_test
+    volumes:
+      - .:/app
+    env_file:
+      - .env.test
+    command: >
+      sh -c "mix deps.get && mix test --trace"
+    depends_on:
+      - mongodb
+    networks:
+      - admin
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb_test_container
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - .:/data/db
+    networks:
+      - admin
+
+networks:
+  admin:
+    name: admin
