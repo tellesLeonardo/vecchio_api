@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+   vecchio_test:
+    build:
+      context: ..
+      target: build
+      dockerfile: Dockerfile
+    environment:
+      MIX_ENV: test
+    container_name: vecchio_test
+    command: >
+      sh -c "mix deps.get && mix test --trace"     restart: unless-stopped
+    volumes:
+      - .:/app
+    env_file:
+      - .env.test
+    depends_on:
+      - mongodb
+    networks:
+      - admin
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+        
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - admin
+
+networks:
+  admin:
+    name: admin
