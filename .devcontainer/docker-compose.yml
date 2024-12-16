@@ -58,8 +58,6 @@ services:
     networks:
       - admin
 
-
-
 networks:
   admin:
     name: admin

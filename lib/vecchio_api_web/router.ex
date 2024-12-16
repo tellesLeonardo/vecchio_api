@@ -5,11 +5,11 @@ defmodule VecchioApiWeb.Router do
     plug :accepts, ["json"]
     plug VecchioApiWeb.Plugs.CORS
     plug VecchioApiWeb.Plugs.RequestLogger
+    plug VecchioApi.Plugs.ClientName
   end
 
   scope "/", VecchioApiWeb do
     pipe_through :api
-
-    post "/", Command, :command
+    post "/", CommandController, :command
   end
 end

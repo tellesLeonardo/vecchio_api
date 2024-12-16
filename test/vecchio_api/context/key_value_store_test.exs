@@ -1,74 +1,99 @@
-defmodule VecchioApi.KeyValueStoresTest do
-  use ExUnit.Case, async: true
+defmodule VecchioApi.Database.Context.KeyValueStoresTest do
+  use ExUnit.Case
   alias VecchioApi.Database.Context.KeyValueStores
+  alias Mongo
+
+  @moduletag :capture_log
 
   @collection "key_value_store"
+  @conn :mongo
 
-  # Antes de cada teste, criamos uma nova conexão com o banco de dados de teste
   setup do
-    conn = :mongo
-
-    # Limpar a coleção antes de cada teste para garantir testes isolados
-    Mongo.delete_many(conn, @collection, %{})
+    # Preparação para limpar a coleção antes de cada teste
+    Mongo.delete_many(@conn, @collection, %{})
     :ok
   end
 
-  test "insert/1 insere um novo documento com sucesso" do
-    key_value = %{key: "test_key", value: "test_value", client: "test_client", in_transaction: true}
+  describe "insert/1" do
+    test "insere um novo documento corretamente" do
+      document = %{key: "idade", value: 30, client: "cliente_1"}
 
-    # Tenta inserir o documento
-    assert {:ok, %{id: _id}} = KeyValueStores.insert(key_value)
+      assert {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-    # Verifica se o documento foi inserido
-    assert {:ok, %{"key" => "test_key", "value" => "test_value"}} = KeyValueStores.find_by_key("test_key")
+      # Verificando que o documento foi inserido corretamente
+      assert {:ok, result} = KeyValueStores.find_by_key("idade")
+      assert result["data"]["idade"] == 30
+    end
   end
 
-  test "find_by_key/1 retorna o documento correto" do
-    key_value = %{key: "test_key", value: "test_value", client: "test_client", in_transaction: true}
+  describe "find_by_key/1" do
+    test "retorna um documento baseado na chave" do
+      # Insere um documento
+      document = %{key: "idade", value: 25, client: "cliente_2"}
+      {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-    # Inserindo o documento
-    {:ok, %{id: _id}} = KeyValueStores.insert(key_value)
+      # Realiza a busca
+      assert {:ok, result} = KeyValueStores.find_by_key("idade")
+      assert result["data"]["idade"] == 25
+    end
 
-    # Verifica se o documento pode ser encontrado pela chave
-    assert {:ok, %{"key" => "test_key", "value" => "test_value"}} = KeyValueStores.find_by_key("test_key")
+    test "retorna erro quando a chave não é encontrada" do
+      assert {:error, :not_found} = KeyValueStores.find_by_key("idade")
+    end
   end
 
-  test "update_by_key/2 atualiza um documento corretamente" do
-    key_value = %{key: "test_key", value: "test_value", client: "test_client", in_transaction: true}
+  describe "update_by_key/2" do
+    test "atualiza o valor corretamente" do
+      # Insere um documento
+      document = %{key: "idade", value: 40, client: "cliente_3"}
+      {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-    # Inserindo o documento
-    {:ok, %{id: _id}} = KeyValueStores.insert(key_value)
+      # Atualiza o documento
+      updates = %{"data.idade" => 45}
+      assert {:ok, :updated} = KeyValueStores.update_by_key("idade", updates)
 
-    # Atualizando o documento
-    updated_value = %{value: "updated_value"}
-    assert {:ok, :updated} = KeyValueStores.update_by_key("test_key", updated_value)
+      # Verifica se o valor foi atualizado
+      assert {:ok, result} = KeyValueStores.find_by_key("idade")
+      assert result["data"]["idade"] == 45
+    end
 
-    # Verificando se o documento foi atualizado
-    assert {:ok, %{"key" => "test_key", "value" => "updated_value"}} = KeyValueStores.find_by_key("test_key")
+    test "retorna erro quando a chave não existe" do
+      updates = %{"data.idade" => 30}
+      assert {:error, :not_found} = KeyValueStores.update_by_key("idade", updates)
+    end
   end
 
-  test "delete_by_key/1 deleta um documento corretamente" do
-    key_value = %{key: "test_key", value: "test_value", client: "test_client", in_transaction: true}
+  describe "delete_by_key/1" do
+    test "deleta o documento corretamente" do
+      # Insere um documento
+      document = %{key: "idade", value: 50, client: "cliente_4"}
+      {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-    # Inserindo o documento
-    {:ok, %{id: _id}} = KeyValueStores.insert(key_value)
+      # Deleta o documento
+      assert {:ok, :deleted} = KeyValueStores.delete_by_key("idade")
 
-    # Deletando o documento
-    assert {:ok, :deleted} = KeyValueStores.delete_by_key("test_key")
+      # Verifica se o documento foi deletado
+      assert {:error, :not_found} = KeyValueStores.find_by_key("idade")
+    end
 
-    # Verificando se o documento foi deletado
-    assert {:error, :not_found} = KeyValueStores.find_by_key("test_key")
+    test "retorna erro quando a chave não existe" do
+      assert {:error, :not_found} = KeyValueStores.delete_by_key("idade")
+    end
   end
 
-  test "list_all/0 retorna todos os documentos" do
-    # Inserindo dois documentos
-    key_value1 = %{key: "key1", value: "value1", client: "client1", in_transaction: true}
-    key_value2 = %{key: "key2", value: "value2", client: "client2", in_transaction: false}
+  describe "list_all/0" do
+    test "retorna todos os documentos" do
+      # Insere alguns documentos
+      document1 = %{key: "idade", value: 60, client: "cliente_5"}
+      document2 = %{key: "nome", value: "João", client: "cliente_6"}
+      {:ok, _} = KeyValueStores.insert(document1)
+      {:ok, _} = KeyValueStores.insert(document2)
 
-    {:ok, %{id: _id1}} = KeyValueStores.insert(key_value1)
-    {:ok, %{id: _id2}} = KeyValueStores.insert(key_value2)
-
-    # Verificando se todos os documentos estão presentes
-    assert length(KeyValueStores.list_all()) == 2
+      # Verifica se os documentos foram inseridos
+      documents = KeyValueStores.list_all()
+      assert length(documents) == 2
+      assert Enum.any?(documents, fn doc -> doc["data"]["idade"] == 60 end)
+      assert Enum.any?(documents, fn doc -> doc["data"]["nome"] == "João" end)
+    end
   end
 end

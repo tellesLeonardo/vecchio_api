@@ -12,14 +12,11 @@ defmodule VecchioApi.Database.Context.KeyValueStores do
   def insert(%{
         key: key,
         value: value,
-        client: client,
-        in_transaction: in_transaction
+        client: client
       }) do
     document = %{
-      key: key,
-      value: value,
-      client: client,
-      in_transaction: in_transaction
+      "data" => %{key => value},
+      "client" => client
     }
 
     case Mongo.insert_one(@conn, @collection, document) do
@@ -35,7 +32,7 @@ defmodule VecchioApi.Database.Context.KeyValueStores do
   Busca um documento pelo campo `key`.
   """
   def find_by_key(key) do
-    query = %{key: key}
+    query = %{"data.#{key}" => %{"$exists" => true}}
 
     case Mongo.find_one(@conn, @collection, query) do
       nil -> {:error, :not_found}
@@ -47,7 +44,7 @@ defmodule VecchioApi.Database.Context.KeyValueStores do
   Atualiza um documento com base no campo `key`.
   """
   def update_by_key(key, updates) do
-    filter = %{key: key}
+    filter = %{"data.#{key}" => %{"$exists" => true}}
     update = %{"$set" => updates}
 
     case Mongo.update_one(@conn, @collection, filter, update) do
@@ -66,7 +63,7 @@ defmodule VecchioApi.Database.Context.KeyValueStores do
   Remove um documento pelo campo `key`.
   """
   def delete_by_key(key) do
-    filter = %{key: key}
+    filter = %{"data.#{key}" => %{"$exists" => true}}
 
     case Mongo.delete_one(@conn, @collection, filter) do
       {:ok, %Mongo.DeleteResult{deleted_count: 0}} ->

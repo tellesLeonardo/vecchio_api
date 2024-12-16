@@ -2,8 +2,8 @@ defmodule VecchioApiWeb.Plugs.RequestLogger do
   import Plug.Conn
   require Logger
 
+  @behaviour Plug
   def init(opts), do: opts
-
   def call(conn, _opts) do
     start_time = System.monotonic_time(:millisecond)
     conn = assign(conn, :start_time, start_time)

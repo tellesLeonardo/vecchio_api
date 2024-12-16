@@ -1,6 +1,8 @@
 defmodule VecchioApiWeb.Plugs.CORS do
   import Plug.Conn
 
+  @behaviour Plug
+
   def init(opts), do: opts
 
   def call(conn, _opts) do

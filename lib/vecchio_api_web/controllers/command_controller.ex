@@ -1,4 +1,4 @@
-defmodule VecchioApiWeb.Command do
+defmodule VecchioApiWeb.CommandController do
   use VecchioApiWeb, :controller
 
   def command(conn, data) do
@@ -8,6 +8,4 @@ defmodule VecchioApiWeb.Command do
     |> put_status(:ok)
     |> json(%{response: :await})
   end
-
-  # TODO create plug for catch client in conn
 end
