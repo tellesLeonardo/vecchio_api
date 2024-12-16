@@ -3,18 +3,17 @@ version: '3.8'
 services:
   vecchio_test:
     build:
-      context: ..
-      target: build
+      context: .
       dockerfile: Dockerfile.test
     environment:
       MIX_ENV: test
     container_name: vecchio_test
-    command: >
-      sh -c "mix deps.get && mix test --trace"
     volumes:
       - .:/app
     env_file:
       - .env.test
+    command: >
+      sh -c "mix deps.get && mix test --trace"
     depends_on:
       - mongodb
     networks:
