@@ -140,7 +140,7 @@ defmodule VecchioApi.Command.CommandParser do
   """
   defp valid_integer?(value) do
     case Integer.parse(value) do
-      {int_value, ""} -> true
+      {_int_value, ""} -> true
       _ -> false
     end
   end
@@ -159,7 +159,7 @@ defmodule VecchioApi.Command.CommandParser do
   """
   defp valid_float?(value) do
     case Float.parse(value) do
-      {float_value, ""} -> true
+      {_float_value, ""} -> true
       _ -> false
     end
   end

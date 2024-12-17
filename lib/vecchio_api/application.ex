@@ -16,6 +16,10 @@ defmodule VecchioApi.Application do
       # Start a worker by calling: VecchioApi.Worker.start_link(arg)
       VecchioApi.Repo,
       # Start to serve requests, typically the last entry
+      # my supervisor
+      VecchioApi.Core.UserSupervisor,
+      # my registry
+      {Registry, keys: :unique, name: VecchioApi.Registry},
       VecchioApiWeb.Endpoint
     ]
 
