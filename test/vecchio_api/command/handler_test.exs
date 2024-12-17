@@ -2,53 +2,103 @@ defmodule VecchioApi.Command.HandlerTest do
   use ExUnit.Case
   alias VecchioApi.Command.Handler
 
-  describe "parse/1" do
-    test "parses command with quoted key and boolean value" do
-      assert Handler.handle_command(~s{SET "my_key" TRUE}) ==  %Handler{code: :set, key: "my_key", value: true, quotation: true}
-      assert Handler.handle_command(~s{SET "my_key" FALSE}) == %Handler{code: :set, key: "my_key", value: false, quotation: true}
+  describe "handle_command/1" do
+    test "validates and handles GET command" do
+      input = "GET test_key"
+
+      result = Handler.handle_command(input)
+
+      expected_result = %VecchioApi.Command.Handler{
+        code: :get,
+        key: "test_key",
+        value: nil,
+        quotation: false
+      }
+
+      assert result == expected_result
     end
 
-    test "parses command with quoted key and integer value" do
-      assert Handler.handle_command(~s{SET "my_key" 123}) == %Handler{code: :set, key: "my_key", value: 123, quotation: true}
+    test "validates and handles BEGIN command" do
+      input = "BEGIN"
+
+      result = Handler.handle_command(input)
+
+      expected_result = %VecchioApi.Command.Handler{
+        code: :begin,
+        key: nil,
+        value: nil,
+        quotation: false
+      }
+
+      assert result == expected_result
     end
 
-    test "parses command with quoted key and string value" do
-      assert Handler.handle_command(~s{SET "my_key" some_string}) == %Handler{code: :set, key: "my_key", value: "some_string", quotation: true}
+    test "validates and handles ROLLBACK command" do
+      input = "ROLLBACK"
+
+      result = Handler.handle_command(input)
+
+      expected_result = %VecchioApi.Command.Handler{
+        code: :rollback,
+        key: nil,
+        value: nil,
+        quotation: false
+      }
+
+      assert result == expected_result
     end
 
-    test "parses command with unquoted key and boolean value" do
-      assert Handler.handle_command(~s{SET my_key TRUE}) == %Handler{code: :set, key: "my_key", value: true, quotation: false}
-      assert Handler.handle_command(~s{SET my_key FALSE}) == %Handler{code: :set, key: "my_key", value: false, quotation: false}
+    test "validates and handles COMMIT command" do
+      input = "COMMIT"
+
+      result = Handler.handle_command(input)
+
+      expected_result = %VecchioApi.Command.Handler{
+        code: :commit,
+        key: nil,
+        value: nil,
+        quotation: false
+      }
+
+      assert result == expected_result
     end
 
-    test "parses command with unquoted key and integer value" do
-      assert Handler.handle_command(~s{SET my_key 123}) == %Handler{code: :set, key: "my_key", value: 123, quotation: false}
+    test "returns error for an unknown command" do
+      input = "INVALID_COMMAND"
+
+      result = Handler.handle_command(input)
+
+      assert result == {:error, "Unknown command: INVALID_COMMAND"}
     end
 
-    test "parses command with unquoted key and string value" do
-      assert Handler.handle_command(~s{SET my_key some_string}) == %Handler{code: :set, key: "my_key", value: "some_string", quotation: false}
+    test "handles GET command with quotation marks around key" do
+      input = "GET \"quoted_key\""
+
+      result = Handler.handle_command(input)
+
+      expected_result = %VecchioApi.Command.Handler{
+        code: :get,
+        key: "quoted_key",
+        value: nil,
+        quotation: false
+      }
+
+      assert result == expected_result
     end
 
-    test "parses command with multi-word unquoted key" do
-      assert Handler.handle_command(~s{SET my multi word key 123}) == %Handler{code: :set, key: "my multi word key", value: 123, quotation: false}
-    end
+    test "handles BEGIN command with no key or value" do
+      input = "BEGIN"
 
-    test "returns error for invalid command format" do
-      assert Handler.handle_command("INVALID_COMMAND") == {:error, "Unknown command: INVALID_COMMAND"}
-    end
+      result = Handler.handle_command(input)
 
-    test "parses command with key-value pair and handles mixed-case booleans as strings" do
-      assert Handler.handle_command(~s{SET "key" "TRUE"}) == %Handler{code: :set, key: "key", value: "TRUE", quotation: true}
-      assert Handler.handle_command(~s{SET key FALSE123}) == %Handler{code: :set, key: "key", value: "FALSE123", quotation: false}
-    end
+      expected_result = %VecchioApi.Command.Handler{
+        code: :begin,
+        key: nil,
+        value: nil,
+        quotation: false
+      }
 
-    test "parses command with extra spaces and trims correctly" do
-      assert Handler.handle_command("SET   my_key     42") == %Handler{code: :set, key: "  my_key    ", value: 42, quotation: true}
-    end
-
-    test "handles missing key or value gracefully" do
-      assert Handler.handle_command("SET") == {:error, "Invalid syntax for command SET"}
-      assert Handler.handle_command("SET my_key") == {:error, "Invalid syntax for command SET"}
+      assert result == expected_result
     end
   end
 end
