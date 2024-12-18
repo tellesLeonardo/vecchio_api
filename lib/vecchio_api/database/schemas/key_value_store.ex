@@ -5,7 +5,6 @@ defmodule VecchioApi.Schemas.KeyValueStore do
   collection "key_value_store" do
     attribute(:id, :string, derived: true)
     attribute(:data, :map)
-    attribute(:client, :string)
 
     after_load(&KeyValueStore.after_load/1)
     before_dump(&KeyValueStore.before_dump/1)
@@ -19,10 +18,9 @@ defmodule VecchioApi.Schemas.KeyValueStore do
     %__MODULE__{data | id: nil}
   end
 
-  def new(key, value, client) do
+  def new(key, value) do
     new()
     |> Map.put(:data, %{key => value})
-    |> Map.put(:client, client)
     |> after_load()
   end
 end

@@ -16,7 +16,7 @@ defmodule VecchioApi.Database.Context.KeyValueStoresTest do
 
   describe "insert/1" do
     test "insere um novo documento corretamente" do
-      document = %{key: "idade", value: 30, client: "cliente_1"}
+      document = %{key: "idade", value: 30}
 
       assert {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
@@ -29,7 +29,7 @@ defmodule VecchioApi.Database.Context.KeyValueStoresTest do
   describe "find_by_key/1" do
     test "retorna um documento baseado na chave" do
       # Insere um documento
-      document = %{key: "idade", value: 25, client: "cliente_2"}
+      document = %{key: "idade", value: 25}
       {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
       # Realiza a busca
@@ -45,7 +45,7 @@ defmodule VecchioApi.Database.Context.KeyValueStoresTest do
   describe "update_by_key/2" do
     test "atualiza o valor corretamente" do
       # Insere um documento
-      document = %{key: "idade", value: 40, client: "cliente_3"}
+      document = %{key: "idade", value: 40}
       {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
       # Atualiza o documento
@@ -66,7 +66,7 @@ defmodule VecchioApi.Database.Context.KeyValueStoresTest do
   describe "delete_by_key/1" do
     test "deleta o documento corretamente" do
       # Insere um documento
-      document = %{key: "idade", value: 50, client: "cliente_4"}
+      document = %{key: "idade", value: 50}
       {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
       # Deleta o documento
@@ -84,8 +84,8 @@ defmodule VecchioApi.Database.Context.KeyValueStoresTest do
   describe "list_all/0" do
     test "retorna todos os documentos" do
       # Insere alguns documentos
-      document1 = %{key: "idade", value: 60, client: "cliente_5"}
-      document2 = %{key: "nome", value: "João", client: "cliente_6"}
+      document1 = %{key: "idade", value: 60}
+      document2 = %{key: "nome", value: "João"}
       {:ok, _} = KeyValueStores.insert(document1)
       {:ok, _} = KeyValueStores.insert(document2)
 

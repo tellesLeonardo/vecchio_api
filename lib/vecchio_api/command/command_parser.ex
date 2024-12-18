@@ -12,13 +12,13 @@ defmodule VecchioApi.Command.CommandParser do
   ## Examples
 
       iex> CommandParser.parse("SET \"key\" value")
-      {"SET", "key", "value", true}
+      {"SET", "key", "value"}
 
       iex> CommandParser.parse("GET key")
-      {"GET", "key", nil, false}
+      {"GET", "key", nil}
 
       iex> CommandParser.parse("BEGIN")
-      {"BEGIN", nil, nil, false}
+      {"BEGIN", nil, nil}
 
       iex> CommandParser.parse("INVALID")
       {:error, "Invalid command"}
@@ -35,6 +35,8 @@ defmodule VecchioApi.Command.CommandParser do
       _ ->
         {:error, "Invalid command"}
     end
+  rescue
+    error in RuntimeError -> {:error, error.message}
   end
 
   @doc """
@@ -43,29 +45,29 @@ defmodule VecchioApi.Command.CommandParser do
   ## Examples
 
       iex> CommandParser.parse_command_with_key_value("SET", "\"key\" value")
-      {"SET", "key", "value", true}
+      {"SET", "key", "value"}
 
       iex> CommandParser.parse_command_with_key_value("SET", "key value")
-      {"SET", "key", "value", false}
+      {"SET", "key", "value"}
 
       iex> CommandParser.parse_command_with_key_value("GET", "key")
-      {"GET", "key", nil, false}
+      {"GET", "key", nil}
 
   """
   defp parse_command_with_key_value("SET", rest) do
     case Regex.run(~r/^"([^"]+)"\s+(.+)$/, rest) do
       [_, key, value] ->
-        {"SET", key, convert_value(value), true}
+        {"SET", key, convert_value(value)}
 
       _ ->
         parts = String.split(rest, ~r/\s+/)
         {key, value} = extract_key_value(parts)
-        {"SET", key, convert_value(value), false}
+        {"SET", validate_key(key), convert_value(value)}
     end
   end
 
   defp parse_command_with_key_value(command, rest) do
-    {command, rest, nil, false}
+    {command, validate_key(rest), nil}
   end
 
   @doc """
@@ -163,4 +165,13 @@ defmodule VecchioApi.Command.CommandParser do
       _ -> false
     end
   end
+
+  defp validate_key(key) when is_binary(key) do
+    case Integer.parse(key) do
+      {_, _} -> raise "Value #{key} is not valid as key"
+      _ -> key
+    end
+  end
+
+  defp validate_key(key), do: key
 end

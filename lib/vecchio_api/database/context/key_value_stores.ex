@@ -11,12 +11,10 @@ defmodule VecchioApi.Database.Context.KeyValueStores do
   """
   def insert(%{
         key: key,
-        value: value,
-        client: client
+        value: value
       }) do
     document = %{
-      "data" => %{key => value},
-      "client" => client
+      "data" => %{key => value}
     }
 
     case Mongo.insert_one(@conn, @collection, document) do
@@ -47,7 +45,7 @@ defmodule VecchioApi.Database.Context.KeyValueStores do
     filter = %{"data.#{key}" => %{"$exists" => true}}
     update = %{"$set" => updates}
 
-    case Mongo.update_one(@conn, @collection, filter, update) do
+    case Mongo.update_one(@conn, @collection, filter, update, upsert: true) do
       {:ok, %Mongo.UpdateResult{matched_count: 0}} ->
         {:error, :not_found}
 

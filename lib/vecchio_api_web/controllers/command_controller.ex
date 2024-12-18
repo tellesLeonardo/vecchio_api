@@ -6,18 +6,15 @@ defmodule VecchioApiWeb.CommandController do
 
   def command(conn, _data) do
     {:ok, body, _conn} = Plug.Conn.read_body(conn)
-    IO.inspect(body, label: "#{__MODULE__}")
 
-    case Handler.handle_command(body) do
-      {:error, _} = data -> IO.inspect(data)
-      data -> ClientManger.execute(data, conn.assigns.client_name)
-    end
+    response =
+      case Handler.handle_command(body) do
+        {:error, error_message} -> error_message
+        data -> ClientManger.execute(data, conn.assigns.client_name)
+      end
 
     conn
     |> put_status(:ok)
-    |> json(%{response: :await})
+    |> text(response)
   end
 end
-
-# TODO fazer o retorno caso de error
-# TODO fazer o retorno caso de sucesso

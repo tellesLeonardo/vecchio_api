@@ -7,15 +7,13 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET "my_key" TRUE}) == %Handler{
                code: :set,
                key: "my_key",
-               value: true,
-               quotation: true
+               value: true
              }
 
       assert Handler.handle_command(~s{SET "my_key" FALSE}) == %Handler{
                code: :set,
                key: "my_key",
-               value: false,
-               quotation: true
+               value: false
              }
     end
 
@@ -23,8 +21,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET "my_key" "123"}) == %Handler{
                code: :set,
                key: "my_key",
-               value: "123",
-               quotation: true
+               value: "123"
              }
     end
 
@@ -32,8 +29,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET "my_key" some_string}) == %Handler{
                code: :set,
                key: "my_key",
-               value: "some_string",
-               quotation: true
+               value: "some_string"
              }
     end
 
@@ -41,15 +37,13 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET my_key TRUE}) == %Handler{
                code: :set,
                key: "my_key",
-               value: true,
-               quotation: false
+               value: true
              }
 
       assert Handler.handle_command(~s{SET my_key FALSE}) == %Handler{
                code: :set,
                key: "my_key",
-               value: false,
-               quotation: false
+               value: false
              }
     end
 
@@ -57,8 +51,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET my_key 123}) == %Handler{
                code: :set,
                key: "my_key",
-               value: 123,
-               quotation: false
+               value: 123
              }
     end
 
@@ -66,8 +59,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET my_key some_string}) == %Handler{
                code: :set,
                key: "my_key",
-               value: "some_string",
-               quotation: false
+               value: "some_string"
              }
     end
 
@@ -75,8 +67,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET my multi word key 123}) == %Handler{
                code: :set,
                key: "my multi word key",
-               value: 123,
-               quotation: false
+               value: 123
              }
     end
 
@@ -89,24 +80,21 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command(~s{SET "key" "TRUE"}) == %Handler{
                code: :set,
                key: "key",
-               value: "TRUE",
-               quotation: true
+               value: "TRUE"
              }
 
       assert Handler.handle_command(~s{SET key FALSE123}) == %Handler{
                code: :set,
                key: "key",
-               value: "FALSE123",
-               quotation: false
+               value: "FALSE123"
              }
     end
 
-    test "parses SET command with key-value pair and handles mixed-case booleans as strings" do
+    test "parses SET command with key-value pair and handles mixed-case booleans as strings two test" do
       assert Handler.handle_command(~s{SET TRUE TRUE}) == %Handler{
                code: :set,
                key: "TRUE",
-               value: true,
-               quotation: false
+               value: true
              }
     end
 
@@ -114,8 +102,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
       assert Handler.handle_command("SET \"my key\" 42") == %Handler{
                code: :set,
                key: "my key",
-               value: 42,
-               quotation: true
+               value: 42
              }
     end
 
@@ -129,8 +116,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
     assert Handler.handle_command(~s{SET "key" "value with spaces"}) == %Handler{
              code: :set,
              key: "key",
-             value: "value with spaces",
-             quotation: true
+             value: "value with spaces"
            }
   end
 
@@ -138,8 +124,7 @@ defmodule VecchioApi.Command.SetHandlerTest do
     assert Handler.handle_command(~s{SET my_key a10}) == %Handler{
              code: :set,
              key: "my_key",
-             value: "a10",
-             quotation: false
+             value: "a10"
            }
   end
 
@@ -156,8 +141,23 @@ defmodule VecchioApi.Command.SetHandlerTest do
     assert Handler.handle_command("SET \"AB\\\"C\" 123") == %Handler{
              code: :set,
              key: "AB\\\"C",
-             value: 123,
-             quotation: false
+             value: 123
            }
+  end
+
+  test "new test nil" do
+    assert Handler.handle_command("SET abc NIL") == {:error, "Cannot set key to NIL"}
+  end
+
+  test "new key not number 2" do
+    assert Handler.handle_command("SET \"10\" 1") == %Handler{
+             code: :set,
+             key: "10",
+             value: 1
+           }
+  end
+
+  test "new key not number" do
+    assert Handler.handle_command("SET 10 1") == {:error, "Value 10 is not valid as key"}
   end
 end

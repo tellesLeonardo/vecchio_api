@@ -11,9 +11,18 @@ defmodule VecchioApi.Command.HandlerTest do
       expected_result = %VecchioApi.Command.Handler{
         code: :get,
         key: "test_key",
-        value: nil,
-        quotation: false
+        value: nil
       }
+
+      assert result == expected_result
+    end
+
+    test "Validates the GET command by passing a number" do
+      input = "GET 10"
+
+      result = Handler.handle_command(input)
+
+      expected_result = {:error, "Value 10 is not valid as key"}
 
       assert result == expected_result
     end
@@ -26,8 +35,7 @@ defmodule VecchioApi.Command.HandlerTest do
       expected_result = %VecchioApi.Command.Handler{
         code: :begin,
         key: nil,
-        value: nil,
-        quotation: false
+        value: nil
       }
 
       assert result == expected_result
@@ -41,8 +49,7 @@ defmodule VecchioApi.Command.HandlerTest do
       expected_result = %VecchioApi.Command.Handler{
         code: :rollback,
         key: nil,
-        value: nil,
-        quotation: false
+        value: nil
       }
 
       assert result == expected_result
@@ -56,8 +63,7 @@ defmodule VecchioApi.Command.HandlerTest do
       expected_result = %VecchioApi.Command.Handler{
         code: :commit,
         key: nil,
-        value: nil,
-        quotation: false
+        value: nil
       }
 
       assert result == expected_result
@@ -79,8 +85,7 @@ defmodule VecchioApi.Command.HandlerTest do
       expected_result = %VecchioApi.Command.Handler{
         code: :get,
         key: "quoted_key",
-        value: nil,
-        quotation: false
+        value: nil
       }
 
       assert result == expected_result
@@ -94,8 +99,7 @@ defmodule VecchioApi.Command.HandlerTest do
       expected_result = %VecchioApi.Command.Handler{
         code: :begin,
         key: nil,
-        value: nil,
-        quotation: false
+        value: nil
       }
 
       assert result == expected_result
