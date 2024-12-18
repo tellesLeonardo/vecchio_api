@@ -6,10 +6,6 @@
 	"service": "vecchio",
 	"forwardPorts": [4444],
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"runArgs": [
-	"--network",
-    "admin"
-  	],
 	"customizations": {
 		"vscode": {
 			"extensions": [

@@ -26,6 +26,17 @@ if config_env() == :prod do
   # want to use a different value for prod and you most likely don't want
   # to check this value into version control, so we use an environment
   # variable instead.
+  config :vecchio_api, VecchioApi.Repo,
+  database: System.get_env("DATABASE_NAME"),
+  url: System.get_env("DATABASE_URL"),
+  pool_size: 10,
+  timeout: 60_000,
+  idle_interval: 10_000,
+  queue_target: 5_000,
+  username: System.get_env("DATABASE_USERNAME"),
+  password: System.get_env("DATABASE_PASSWORD"),
+  auth_source: "admin"
+
   secret_key_base =
     System.get_env("SECRET_KEY_BASE") ||
       raise """

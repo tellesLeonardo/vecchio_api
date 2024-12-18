@@ -44,7 +44,7 @@ RUN apk add --no-cache tzdata \
 # setup app
 WORKDIR /app
 ARG MIX_ENV=prod
-COPY --from=build /app/_build/$MIX_ENV/rel/sysaud ./
+COPY --from=build /app/_build/$MIX_ENV/rel/vechio_api ./
 
 # start application
 COPY start.sh ./
