@@ -1,5 +1,5 @@
 #!/bin/sh
 
-bin/sysaud eval "Sysaud.Release.migrate" && \
-bin/sysaud eval "Sysaud.Release.seed" && \
-bin/sysaud start
+bin/vecchio_api eval "VecchioApi.Release.migrate" && \
+bin/vecchio_api eval "VecchioApi.Release.seed" && \
+bin/vecchio_api start

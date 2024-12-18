@@ -9,7 +9,7 @@ services:
       args:
         MIX_ENV: prod
     container_name: vecchio
-    command: iex -S mix phx.server
+    command: /bin/sh docker_dev_start.sh
     restart: unless-stopped
     ports:
       - "4444:4444"
