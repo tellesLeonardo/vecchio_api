@@ -44,6 +44,7 @@ defmodule VecchioApiWeb do
       use Gettext, backend: VecchioApiWeb.Gettext
 
       import Plug.Conn
+      require Logger
 
       unquote(verified_routes())
     end

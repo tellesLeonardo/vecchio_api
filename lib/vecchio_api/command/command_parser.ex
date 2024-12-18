@@ -1,144 +1,133 @@
 defmodule VecchioApi.Command.CommandParser do
   @moduledoc """
-  A module for parsing commands in the system.
+  Parses and processes commands with varying parameters.
 
-  It is responsible for parsing commands such as SET, GET, BEGIN, ROLLBACK, and COMMIT,
-  extracting the key-value pairs or handling command-specific parameters.
-  """
-
-  @doc """
-  Parses an input command string.
+  Supports commands such as `SET`, `GET`, `BEGIN`, `ROLLBACK`, and `COMMIT`,
+  converting values to appropriate types and validating inputs as needed.
 
   ## Examples
 
-      iex> CommandParser.parse("SET \"key\" value")
-      {"SET", "key", "value"}
+      iex> CommandParser.parse(["SET", "key", "123"])
+      {:set, "key", 123}
 
-      iex> CommandParser.parse("GET key")
-      {"GET", "key", nil}
+      iex> CommandParser.parse(["GET", "key"])
+      {:get, "key", nil}
 
-      iex> CommandParser.parse("BEGIN")
-      {"BEGIN", nil, nil}
-
-      iex> CommandParser.parse("INVALID")
-      {:error, "Invalid command"}
-
+      iex> CommandParser.parse(["BEGIN"])
+      {:begin, nil, nil}
   """
-  def parse(input) do
-    case String.split(input, ~r/\s+/, parts: 2) do
-      [command] ->
-        parse_command_with_key_value(command, nil)
 
-      [command, rest] ->
-        parse_command_with_key_value(command, rest)
+  alias VecchioApi.Utils
+  @cmd_no_data [:begin, :rollback, :commit]
 
-      _ ->
-        {:error, "Invalid command"}
-    end
-  rescue
-    error in RuntimeError -> {:error, error.message}
+  @doc """
+  Parses a command and extracts its operation, key, and value if applicable.
+
+  ## Parameters
+
+    - `data`: A list where the first element is the command and subsequent elements are arguments.
+
+  ## Return
+
+    - A tuple with the command's atom representation and its parameters.
+
+  ## Examples
+
+      iex> CommandParser.parse(["SET", "key", "TRUE"])
+      {:set, "key", true}
+
+      iex> CommandParser.parse(["ROLLBACK"])
+      {:rollback, nil, nil}
+  """
+  def parse([cmd | _] = data) do
+    cmd = String.upcase(cmd)
+
+    Utils.get_commands()
+    |> Map.get(cmd)
+    |> Map.get(:atom)
+    |> parser_command(data)
   end
 
-  @doc """
-  Parses the command and its arguments for commands that accept a key-value structure.
+  defp parser_command(code, _data) when code in @cmd_no_data, do: {code, nil, nil}
 
-  ## Examples
+  defp parser_command(:set, data) do
+    [_, key, value] = data
 
-      iex> CommandParser.parse_command_with_key_value("SET", "\"key\" value")
-      {"SET", "key", "value"}
-
-      iex> CommandParser.parse_command_with_key_value("SET", "key value")
-      {"SET", "key", "value"}
-
-      iex> CommandParser.parse_command_with_key_value("GET", "key")
-      {"GET", "key", nil}
-
-  """
-  defp parse_command_with_key_value("SET", rest) do
-    case Regex.run(~r/^"([^"]+)"\s+(.+)$/, rest) do
-      [_, key, value] ->
-        {"SET", key, convert_value(value)}
-
-      _ ->
-        parts = String.split(rest, ~r/\s+/)
-        {key, value} = extract_key_value(parts)
-        {"SET", validate_key(key), convert_value(value)}
+    with {:ok, key} <- valid_key(convert_type(key)) do
+      {:set, key, convert_type(value)}
+    else
+      {:error, _} = error -> error
     end
   end
 
-  defp parse_command_with_key_value(command, rest) do
-    {command, validate_key(rest), nil}
-  end
+  defp parser_command(:get, data) do
+    [_, key] = data
 
-  @doc """
-  Extracts the key-value pair from a list of string parts.
-
-  ## Examples
-
-      iex> CommandParser.extract_key_value(["key", "value"])
-      {"key", "value"}
-
-      iex> CommandParser.extract_key_value(["long key", "value"])
-      {"long key", "value"}
-
-  """
-  defp extract_key_value(parts) do
-    case Enum.split(parts, -1) do
-      {key_parts, [value]} ->
-        key = Enum.join(key_parts, " ")
-        {key, value}
+    with {:ok, key} <- valid_key(convert_type(key)) do
+      {:get, key, nil}
+    else
+      {:error, _} = error -> error
     end
   end
 
   @doc """
-  Converts a string value into the appropriate type (boolean, integer, float, or string).
+  Converts a string to its appropriate type: boolean, integer, float, or string.
 
   ## Examples
 
-      iex> CommandParser.convert_value("TRUE")
+      iex> CommandParser.convert_type("TRUE")
       true
 
-      iex> CommandParser.convert_value("123")
+      iex> CommandParser.convert_type("123")
       123
 
-      iex> CommandParser.convert_value("12.34")
+      iex> CommandParser.convert_type("12.34")
       12.34
 
-      iex> CommandParser.convert_value("string_value")
-      "string_value"
-
+      iex> CommandParser.convert_type("text")
+      "text"
   """
-  defp convert_value(value) do
+  def convert_type(value) do
     cond do
-      # Check if the value is a boolean
       value in ["TRUE", "FALSE"] ->
         String.upcase(value) == "TRUE"
 
-      # Check if the value is an integer
       valid_integer?(value) ->
         String.to_integer(value)
 
-      # Check if the value is a float
       valid_float?(value) ->
         String.to_float(value)
 
-      # Default: return as a string
       true ->
         value
     end
   end
 
   @doc """
-  Checks if a value can be parsed as an integer.
+  Validates that a key is a string.
+
+  ## Examples
+
+      iex> CommandParser.valid_key("key")
+      {:ok, "key"}
+
+      iex> CommandParser.valid_key(123)
+      {:error, "Value 123 is not valid as key"}
+  """
+  def valid_key(key) do
+    if is_binary(key), do: {:ok, key}, else: {:error, "Value #{key} is not valid as key"}
+  end
+
+  @doc """
+  Determines if a value can be parsed as an integer.
 
   ## Examples
 
       iex> CommandParser.valid_integer?("123")
       true
 
-      iex> CommandParser.valid_integer?("12.34")
+      iex> CommandParser.valid_integer?("abc")
       false
-
   """
   defp valid_integer?(value) do
     case Integer.parse(value) do
@@ -148,7 +137,7 @@ defmodule VecchioApi.Command.CommandParser do
   end
 
   @doc """
-  Checks if a value can be parsed as a float.
+  Determines if a value can be parsed as a float.
 
   ## Examples
 
@@ -157,7 +146,6 @@ defmodule VecchioApi.Command.CommandParser do
 
       iex> CommandParser.valid_float?("123")
       false
-
   """
   defp valid_float?(value) do
     case Float.parse(value) do
@@ -165,13 +153,4 @@ defmodule VecchioApi.Command.CommandParser do
       _ -> false
     end
   end
-
-  defp validate_key(key) when is_binary(key) do
-    case Integer.parse(key) do
-      {_, _} -> raise "Value #{key} is not valid as key"
-      _ -> key
-    end
-  end
-
-  defp validate_key(key), do: key
 end
