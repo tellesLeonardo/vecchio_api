@@ -145,7 +145,7 @@ defmodule VecchioApi.Core.UserGenServer do
         :ok
       else
         Logger.warning(
-          "#{__MODULE__}: Não foi possivel terminar o processo de salvmento da transação por já terem alterado a key #{state.client_name}"
+          "#{__MODULE__}: Não foi possivel terminar o processo de salvmento da transação por já terem alterado a key | client: #{state.client_name}"
         )
 
         HelperGenServer.format_inconsistencies(inconsistencies)
