@@ -56,7 +56,7 @@ defmodule VecchioApi.Core.Helpers.HelperGenServer do
     KeyValueStores.update_by_key(key, %{"data" => %{key => value}})
 
     Logger.info(
-      "#{__MODULE__}: Comando :set fora de transação: chave #{key} com valor antigo #{old_value} e valor novo #{value}"
+      "Comando :set fora de transação: chave #{key} com valor antigo #{old_value} e valor novo #{value}"
     )
 
     {"#{old_value} #{value}", state}
@@ -139,7 +139,7 @@ defmodule VecchioApi.Core.Helpers.HelperGenServer do
   def apply_transaction_commands(commands_in_transaction) do
     Enum.each(commands_in_transaction, fn cmd ->
       KeyValueStores.update_by_key(cmd.key, %{"data" => %{cmd.key => cmd.value}})
-      Logger.info("#{__MODULE__}: Aplicando comando :set para a chave #{cmd.key} com valor #{cmd.value}")
+      Logger.info("Aplicando comando :set para a chave #{cmd.key} com valor #{cmd.value}")
     end)
   end
 

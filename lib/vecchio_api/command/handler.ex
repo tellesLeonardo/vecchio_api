@@ -1,66 +1,44 @@
 defmodule VecchioApi.Command.Handler do
-  @moduledoc """
-  A module responsible for handling commands by processing the input
-  and returning a structured result or error.
-
-  The handler works in conjunction with the `OptionParser`, `SyntaxValidator`,
-  and `CommandParser` modules to split the input, validate its syntax,
-  and parse the command.
-
-  ## Examples
-
-      iex> VecchioApi.Command.Handler.handle_command("SET key 123")
-      %VecchioApi.Command.Handler{code: :set, key: "key", value: 123}
-
-      iex> VecchioApi.Command.Handler.handle_command("GET key")
-      %VecchioApi.Command.Handler{code: :get, key: "key", value: nil}
-
-      iex> VecchioApi.Command.Handler.handle_command("INVALID input")
-      {:error, "Invalid command syntax"}
-  """
-
   defstruct code: nil, key: nil, value: nil
 
-  alias VecchioApi.Command.{CommandParser, OptionParser, SyntaxValidator}
+  alias VecchioApi.Command.CommandParser
+  alias VecchioApi.Command.SyntaxValidator
 
   @spec handle_command(binary()) ::
-          {:error, String.t()}
+          {:error, <<_::64, _::_*8>>}
           | %VecchioApi.Command.Handler{
               code: any(),
               key: binary() | {integer(), integer()},
               value: boolean() | binary() | number()
             }
-
-  @doc """
-  Handles the command input by splitting, validating, and parsing it.
-
-  ## Parameters
-
-    - `input`: A binary string representing the command to be processed.
-
-  ## Return
-
-    - On success, returns a `%VecchioApi.Command.Handler{}` struct with the parsed command details.
-    - On failure, returns an error tuple `{:error, reason}`.
-
-  ## Examples
-
-      iex> VecchioApi.Command.Handler.handle_command("SET key 123")
-      %VecchioApi.Command.Handler{code: :set, key: "key", value: 123}
-
-      iex> VecchioApi.Command.Handler.handle_command("BEGIN")
-      %VecchioApi.Command.Handler{code: :begin, key: nil, value: nil}
-
-      iex> VecchioApi.Command.Handler.handle_command("INVALID COMMAND")
-      {:error, "No command INVALID COMMAND"}
-  """
   def handle_command(input) do
-    with {:ok, data} <- OptionParser.split(input),
-         :ok <- SyntaxValidator.validate(data),
-         {code, key, value} <- CommandParser.parse(data) do
-      %__MODULE__{code: code, key: key, value: value}
+    with {:ok, atom_command, _} <- SyntaxValidator.validate(input),
+         {_command, key, value} <- CommandParser.parse(input),
+         nil <- is_null_in_value(atom_command, value),
+         nil <- is_null_in_key(atom_command, key)do
+      %__MODULE__{code: atom_command, key: unescape_quotes(key), value: unescape_quotes(value)}
     else
-      error -> error
+      {:error, _} = error -> error
     end
   end
+
+  defp is_null_in_value(command, value) when is_binary(value) do
+    if String.upcase(value) == "NIL", do: {:error, "Cannot #{command} key to NIL"}
+  end
+
+  defp is_null_in_value(_command, _value), do: nil
+
+  defp is_null_in_key(command, key) when is_binary(key) do
+    if String.upcase(key) == "NIL", do: {:error, "Cannot #{command} NIL key"}
+  end
+
+  defp is_null_in_key(_command, _key), do: nil
+
+  defp unescape_quotes(input) when is_binary(input) do
+    input
+    |> String.trim_leading("\"")
+    |> String.trim_trailing("\"")
+  end
+
+  defp unescape_quotes(input), do: input
 end

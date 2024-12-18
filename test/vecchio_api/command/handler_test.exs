@@ -74,7 +74,7 @@ defmodule VecchioApi.Command.HandlerTest do
 
       result = Handler.handle_command(input)
 
-      assert result == {:error, "No command INVALID_COMMAND"}
+      assert result == {:error, "Unknown command: INVALID_COMMAND"}
     end
 
     test "handles GET command with quotation marks around key" do
@@ -84,7 +84,7 @@ defmodule VecchioApi.Command.HandlerTest do
 
       expected_result = %VecchioApi.Command.Handler{
         code: :get,
-        key: "\"quoted_key\"",
+        key: "quoted_key",
         value: nil
       }
 
