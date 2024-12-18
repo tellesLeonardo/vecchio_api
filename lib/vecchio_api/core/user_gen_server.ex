@@ -42,7 +42,7 @@ defmodule VecchioApi.Core.UserGenServer do
     - `{:ok, state}`: Retorna o estado inicial após o registro.
   """
   def init(state) do
-    Logger.info("Iniciando GenServer para o cliente #{state.client_name}")
+    Logger.info("#{__MODULE__}: Iniciando GenServer para o cliente #{state.client_name}")
 
     ClientRegistry.register_user(state.client_name)
     {:ok, state}
@@ -58,7 +58,9 @@ defmodule VecchioApi.Core.UserGenServer do
     - `{:reply, response, new_state}`: Resposta da operação e o novo estado.
   """
   def handle_call(%Handler{code: :set} = map, _from, state) do
-    Logger.info("Processando comando :set para a chave #{map.key} com valor #{map.value}")
+    Logger.info(
+      "#{__MODULE__}: Processando comando :set para a chave #{map.key} com valor #{map.value}"
+    )
 
     {response, state} = HelperGenServer.process_set(map, state)
     schedule_timeout()
@@ -75,7 +77,7 @@ defmodule VecchioApi.Core.UserGenServer do
     - `{:reply, response, state}`: Resposta da operação e o estado atual.
   """
   def handle_call(%Handler{code: :get} = map, _from, state) do
-    Logger.info("Processando comando :get para a chave #{map.key}")
+    Logger.info("#{__MODULE__}: Processando comando :get para a chave #{map.key}")
     {response, state} = HelperGenServer.process_get(map, state)
     schedule_timeout()
     {:reply, response, state}
@@ -88,7 +90,8 @@ defmodule VecchioApi.Core.UserGenServer do
     - `{:reply, response, new_state}`: Retorna a resposta do início da transação e o novo estado.
   """
   def handle_call(%Handler{code: :begin}, _from, state) do
-    Logger.info("Iniciando transação para o cliente #{state.client_name}")
+    Logger.info("#{__MODULE__}: Iniciando transação para o cliente #{state.client_name}")
+
     {response, state} =
       if state.transaction do
         {"Already in transaction", state}
@@ -107,7 +110,8 @@ defmodule VecchioApi.Core.UserGenServer do
     - `{:reply, response, new_state}`: Retorna a resposta do rollback e o estado resetado.
   """
   def handle_call(%Handler{code: :rollback}, _from, state) do
-    Logger.info("Revertendo transação para o cliente #{state.client_name}")
+    Logger.info("#{__MODULE__}: Revertendo transação para o cliente #{state.client_name}")
+
     response =
       if Enum.empty?(state.commands_in_transaction) do
         "Transaction level 0"
@@ -127,16 +131,23 @@ defmodule VecchioApi.Core.UserGenServer do
     - `{:reply, response, new_state}`: Resposta sobre o sucesso ou falha no commit e o estado resetado.
   """
   def handle_call(%Handler{code: :commit}, _from, state) do
-    Logger.info("Comitando transação para o cliente #{state.client_name}")
+    Logger.info("#{__MODULE__}: Comitando transação para o cliente #{state.client_name}")
     inconsistencies = HelperGenServer.check_inconsistencies(state.modified_keys)
 
     response =
       if inconsistencies == [] do
         HelperGenServer.apply_transaction_commands(state.commands_in_transaction)
-        Logger.info("Transação comitada com sucesso para o cliente #{state.client_name}")
+
+        Logger.info(
+          "#{__MODULE__}: Transação comitada com sucesso para o cliente #{state.client_name}"
+        )
+
         :ok
       else
-        Logger.warning("Não foi possivel terminar o processo de salvmento da transação por já terem alterado a key #{state.client_name}")
+        Logger.warning(
+          "#{__MODULE__}: Não foi possivel terminar o processo de salvmento da transação por já terem alterado a key #{state.client_name}"
+        )
+
         HelperGenServer.format_inconsistencies(inconsistencies)
       end
 
@@ -152,7 +163,10 @@ defmodule VecchioApi.Core.UserGenServer do
     - `{:stop, :normal, state}`: Encerra o GenServer.
   """
   def handle_info(:timeout, state) do
-    Logger.info("Encerrando GenServer do usuário #{state.client_name} por inatividade.")
+    Logger.info(
+      "#{__MODULE__}: Encerrando GenServer do usuário #{state.client_name} por inatividade."
+    )
+
     ClientRegistry.unregister_user(state.client_name)
     UserSupervisor.terminate_child(self())
     {:stop, :normal, state}
@@ -167,7 +181,8 @@ defmodule VecchioApi.Core.UserGenServer do
     - `new_state`: O novo estado resetado.
   """
   defp reset_state(state) do
-    Logger.info("Resetando estado para o cliente #{state.client_name}")
+    Logger.info("#{__MODULE__}: Resetando estado para o cliente #{state.client_name}")
+
     %{
       state
       | commands_in_transaction: [],

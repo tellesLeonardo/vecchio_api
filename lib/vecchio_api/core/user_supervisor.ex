@@ -19,10 +19,10 @@ defmodule VecchioApi.Core.UserSupervisor do
 
   def terminate_child(pid) do
     if Process.alive?(pid) do
-      Logger.info("Terminando o processo #{inspect(pid)}")
+      Logger.info("#{__MODULE__}: Terminando o processo #{inspect(pid)}")
       DynamicSupervisor.terminate_child(__MODULE__, pid)
     else
-      Logger.info("Processo já terminado.")
+      Logger.info("#{__MODULE__}: Processo já terminado.")
     end
   end
 end
