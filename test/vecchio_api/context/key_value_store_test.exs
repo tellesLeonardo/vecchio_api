@@ -15,81 +15,81 @@ defmodule VecchioApi.Database.Context.KeyValueStoresTest do
   end
 
   describe "insert/1" do
-    test "insere um novo documento corretamente" do
+    test "inserts a new document correctly" do
       document = %{key: "idade", value: 30}
 
       assert {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-      # Verificando que o documento foi inserido corretamente
+      # Verifying that the document was inserted correctly
       assert {:ok, result} = KeyValueStores.find_by_key("idade")
       assert result["data"]["idade"] == 30
     end
   end
 
   describe "find_by_key/1" do
-    test "retorna um documento baseado na chave" do
-      # Insere um documento
+    test "returns a document based on the key" do
+      # Inserts a document
       document = %{key: "idade", value: 25}
       {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-      # Realiza a busca
+      # Performs the search
       assert {:ok, result} = KeyValueStores.find_by_key("idade")
       assert result["data"]["idade"] == 25
     end
 
-    test "retorna erro quando a chave não é encontrada" do
+    test "returns an error when the key is not found" do
       assert {:error, :not_found} = KeyValueStores.find_by_key("idade")
     end
   end
 
   describe "update_by_key/2" do
-    test "atualiza o valor corretamente" do
-      # Insere um documento
+    test "updates the value correctly" do
+      # Inserts a document
       document = %{key: "idade", value: 40}
       {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-      # Atualiza o documento
+      # Updates the document
       updates = %{"data.idade" => 45}
       assert {:ok, :updated} = KeyValueStores.update_by_key("idade", updates)
 
-      # Verifica se o valor foi atualizado
+      # Verifies if the value was updated
       assert {:ok, result} = KeyValueStores.find_by_key("idade")
       assert result["data"]["idade"] == 45
     end
 
-    test "retorna erro quando a chave não existe" do
+    test "returns the insert when the key does not exist due to upsert" do
       updates = %{"data.idade" => 30}
-      assert {:error, :not_found} = KeyValueStores.update_by_key("idade", updates)
+      assert {:ok, :updated} = KeyValueStores.update_by_key("idade", updates)
     end
   end
 
   describe "delete_by_key/1" do
-    test "deleta o documento corretamente" do
-      # Insere um documento
+    test "deletes the document correctly" do
+      # Inserts a document
       document = %{key: "idade", value: 50}
       {:ok, %{id: _id}} = KeyValueStores.insert(document)
 
-      # Deleta o documento
+      # Deletes the document
       assert {:ok, :deleted} = KeyValueStores.delete_by_key("idade")
 
-      # Verifica se o documento foi deletado
+      # Verifies if the document was deleted
       assert {:error, :not_found} = KeyValueStores.find_by_key("idade")
     end
 
-    test "retorna erro quando a chave não existe" do
+    test "returns an error when the key does not exist" do
       assert {:error, :not_found} = KeyValueStores.delete_by_key("idade")
     end
   end
 
   describe "list_all/0" do
-    test "retorna todos os documentos" do
-      # Insere alguns documentos
+    test "returns all documents" do
+      # Inserts some documents
       document1 = %{key: "idade", value: 60}
       document2 = %{key: "nome", value: "João"}
       {:ok, _} = KeyValueStores.insert(document1)
       {:ok, _} = KeyValueStores.insert(document2)
 
-      # Verifica se os documentos foram inseridos
+      # Verifies if the documents were inserted
       documents = KeyValueStores.list_all()
       assert length(documents) == 2
       assert Enum.any?(documents, fn doc -> doc["data"]["idade"] == 60 end)

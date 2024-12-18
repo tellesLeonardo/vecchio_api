@@ -20,8 +20,8 @@ defmodule VecchioApi.Plugs.ClientName do
 
       [] ->
         conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(400, ~s({"error": "Missing X-Client-Name header"}))
+        |> put_resp_content_type("text/plain")
+        |> send_resp(400, "Missing X-Client-Name header")
         |> halt()
     end
   end
